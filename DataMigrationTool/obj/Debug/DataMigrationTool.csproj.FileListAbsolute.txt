@@ -8,3 +8,7 @@ C:\Users\Administrator\source\repos\DataMigrationTool\DataMigrationTool\bin\Debu
 C:\Users\Administrator\source\repos\DataMigrationTool\DataMigrationTool\bin\Debug\DataMigrationTool.pdb
 C:\Users\Administrator\source\repos\DataMigrationTool\DataMigrationTool\obj\Debug\DataMigrationTool.exe
 C:\Users\Administrator\source\repos\DataMigrationTool\DataMigrationTool\obj\Debug\DataMigrationTool.pdb
+C:\Users\Administrator\source\repos\DataMigrationTool\DataMigrationTool\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Administrator\source\repos\DataMigrationTool\DataMigrationTool\bin\Debug\Newtonsoft.Json.pdb
+C:\Users\Administrator\source\repos\DataMigrationTool\DataMigrationTool\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Administrator\source\repos\DataMigrationTool\DataMigrationTool\obj\Debug\DataMigrationTool.csproj.CopyComplete
