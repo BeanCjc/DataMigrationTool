@@ -32,13 +32,14 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.lblCardType = new System.Windows.Forms.Label();
             this.lblMaxId = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.txtMaxId = new System.Windows.Forms.TextBox();
             this.btnImport = new System.Windows.Forms.Button();
+            this.rtxtInfo = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // rtxt_data
             // 
-            this.rtxt_data.Location = new System.Drawing.Point(1, 91);
+            this.rtxt_data.Location = new System.Drawing.Point(1, 256);
             this.rtxt_data.Name = "rtxt_data";
             this.rtxt_data.Size = new System.Drawing.Size(667, 361);
             this.rtxt_data.TabIndex = 0;
@@ -72,13 +73,13 @@
             this.lblMaxId.Text = "旧小微最大ID:";
             this.lblMaxId.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // textBox1
+            // txtMaxId
             // 
-            this.textBox1.Location = new System.Drawing.Point(320, 68);
-            this.textBox1.Multiline = true;
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
-            this.textBox1.TabIndex = 4;
+            this.txtMaxId.Location = new System.Drawing.Point(320, 68);
+            this.txtMaxId.Multiline = true;
+            this.txtMaxId.Name = "txtMaxId";
+            this.txtMaxId.Size = new System.Drawing.Size(100, 20);
+            this.txtMaxId.TabIndex = 4;
             // 
             // btnImport
             // 
@@ -88,14 +89,25 @@
             this.btnImport.TabIndex = 5;
             this.btnImport.Text = "导入新小微";
             this.btnImport.UseVisualStyleBackColor = true;
+            this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
+            // 
+            // rtxtInfo
+            // 
+            this.rtxtInfo.Location = new System.Drawing.Point(1, 91);
+            this.rtxtInfo.Name = "rtxtInfo";
+            this.rtxtInfo.Size = new System.Drawing.Size(667, 166);
+            this.rtxtInfo.TabIndex = 6;
+            this.rtxtInfo.Text = "";
+            this.rtxtInfo.TextChanged += new System.EventHandler(this.rtxtInfo_TextChanged);
             // 
             // DataMigration
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(669, 450);
+            this.ClientSize = new System.Drawing.Size(669, 616);
+            this.Controls.Add(this.rtxtInfo);
             this.Controls.Add(this.btnImport);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.txtMaxId);
             this.Controls.Add(this.lblMaxId);
             this.Controls.Add(this.lblCardType);
             this.Controls.Add(this.comboBox1);
@@ -114,7 +126,8 @@
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label lblCardType;
         private System.Windows.Forms.Label lblMaxId;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox txtMaxId;
         private System.Windows.Forms.Button btnImport;
+        private System.Windows.Forms.RichTextBox rtxtInfo;
     }
 }

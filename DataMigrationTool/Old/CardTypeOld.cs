@@ -22,5 +22,7 @@ namespace DataMigrationTool.Old
         /// 卡类型【1=实体卡,0=微信卡】
         /// </summary>
         public string Type { get; set; }
+
+        public List<CardOld> Data { get; set; }
     }
 }

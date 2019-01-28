@@ -33,7 +33,7 @@ namespace DataMigrationTool
                 config.AppSettings.Settings.Add(key, value);
             }
             config.Save(ConfigurationSaveMode.Modified);
-            System.Configuration.ConfigurationManager.RefreshSection("App");
+            System.Configuration.ConfigurationManager.RefreshSection("AppSettings");
         }
 
         public static ResponseResult Get(string url)
@@ -103,7 +103,7 @@ namespace DataMigrationTool
                             sb.Append($"&{item.Key}={item.Value}");
                         }
                     }
-                    var data = Encoding.UTF8.GetBytes(sb.ToString());
+                    var data = Encoding.UTF8.GetBytes(sb.ToString().ToLower());
                     request.GetRequestStream().Write(data, 0, data.Length);
                     request.ContentLength = data.Length;
                 }
@@ -126,5 +126,23 @@ namespace DataMigrationTool
             }
         }
 
+        public static string ConvertJsonString(string str)
+        {
+            //格式化json字符串
+            var serializer = new JsonSerializer();
+            var tr = new StringReader(str);
+            var jtr = new JsonTextReader(tr);
+            var obj = serializer.Deserialize(jtr);
+            if (obj == null) return str;
+            var textWriter = new StringWriter();
+            var jsonWriter = new JsonTextWriter(textWriter)
+            {
+                Formatting = Formatting.Indented,
+                Indentation = 4,
+                IndentChar = ' '
+            };
+            serializer.Serialize(jsonWriter, obj);
+            return textWriter.ToString();
+        }
     }
 }
