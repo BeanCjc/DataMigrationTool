@@ -32,12 +32,12 @@ namespace DataMigrationTool.New
         /// <summary>
         /// 余额
         /// </summary>
-        public decimal Balance { get; set; }
+        public List<BalanceNew> Balance { get; set; }
 
-        /// <summary>
-        /// 积分余额
-        /// </summary>
-        public decimal Integral { get; set; }
+        ///// <summary>
+        ///// 积分余额
+        ///// </summary>
+        //public decimal Integral { get; set; }
 
         /// <summary>
         /// 性别
@@ -57,7 +57,7 @@ namespace DataMigrationTool.New
         /// <summary>
         /// 生日
         /// </summary>
-        public string Solar_birthday { get; set; }
+        public DateTime Solar_birthday { get; set; }
 
         /// <summary>
         /// 密码
@@ -67,7 +67,11 @@ namespace DataMigrationTool.New
         /// <summary>
         /// 注册日期
         /// </summary>
-        public DateTime Reg_time { get; set; }
+        public string Reg_time { get; set; }
+
+        public string NickName { get; set; }
+
+        public string User_Id { get; set; }
 
         /// <summary>
         /// 卡券

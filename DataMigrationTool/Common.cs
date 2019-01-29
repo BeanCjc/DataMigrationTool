@@ -70,59 +70,57 @@ namespace DataMigrationTool
                 return result = new ResponseResult { Status = 0, Info = e.Message, List = null };
             }
         }
-        public static ResponseResult Post(string url, Dictionary<string, string> param)
+        public static string Post(string url, string param)
         {
-            ResponseResult result;
+            var result = "";
             if (string.IsNullOrEmpty(url))
             {
-                return result = new ResponseResult { Status = 0, Info = "url为空", List = null };
+                return result = JsonConvert.SerializeObject(new ResponseResult { Status = 0, Info = "url为空", List = null });
             }
             if (!url.StartsWith("http://", StringComparison.CurrentCultureIgnoreCase))
             {
-                return result = new ResponseResult { Status = 0, Info = "url格式不正确", List = null };
+                return result = JsonConvert.SerializeObject(new ResponseResult { Status = 0, Info = "url格式不正确", List = null });
             }
             var request = WebRequest.CreateHttp(url);
             request.Method = "POST";
-            request.Timeout = 5000;
+            //request.Timeout = 5000;
+            request.ContentType = "application/json";
             request.Accept = "application/json";
             try
             {
-                if (param != null && param.Count > 0)
+                if (!string.IsNullOrEmpty(param))
                 {
-                    var firstFlag = true;
-                    var sb = new StringBuilder();
-                    foreach (var item in param)
-                    {
-                        if (firstFlag)
-                        {
-                            sb.Append($"{item.Key}={item.Value}");
-                            firstFlag = false;
-                        }
-                        else
-                        {
-                            sb.Append($"&{item.Key}={item.Value}");
-                        }
-                    }
-                    var data = Encoding.UTF8.GetBytes(sb.ToString().ToLower());
-                    request.GetRequestStream().Write(data, 0, data.Length);
+                    //var firstFlag = true;
+                    //var sb = new StringBuilder();
+                    //foreach (var item in param)
+                    //{
+                    //    if (firstFlag)
+                    //    {
+                    //        sb.Append($"{item.Key}={item.Value}");
+                    //        firstFlag = false;
+                    //    }
+                    //    else
+                    //    {
+                    //        sb.Append($"&{item.Key}={item.Value}");
+                    //    }
+                    //}
+
+                    var data = Encoding.UTF8.GetBytes(param.ToLower());
                     request.ContentLength = data.Length;
+                    request.GetRequestStream().Write(data, 0, data.Length);
                 }
                 var response = request.GetResponse();
                 using (var stream = response.GetResponseStream())
                 using (var sr = new StreamReader(stream ?? throw new InvalidOperationException($"return null"), Encoding.UTF8))
                 {
-                    result = JsonConvert.DeserializeObject<ResponseResult>(sr.ReadToEnd());
-                    if (result == null)
-                    {
-                        return result = new ResponseResult { Status = 0, Info = "反序列化错误", List = null };
-                    }
+                    result = sr.ReadToEnd();
                 }
                 response.Close();
                 return result;
             }
             catch (Exception e)
             {
-                return result = new ResponseResult { Status = 0, Info = e.Message, List = null };
+                return result = JsonConvert.SerializeObject(new ResponseResult { Status = 0, Info = e.Message, List = null });
             }
         }
 
@@ -143,6 +141,27 @@ namespace DataMigrationTool
             };
             serializer.Serialize(jsonWriter, obj);
             return textWriter.ToString();
+        }
+
+        public static void WriteLog(string fileName, string message)
+        {
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var logDirectory = currentDirectory + "/Log";
+            var file = logDirectory + "/" + fileName;
+            if (!Directory.Exists(logDirectory))
+            {
+                Directory.CreateDirectory(logDirectory);
+            }
+
+            if (!File.Exists(file))
+            {
+                var fs = File.Create(file);
+                fs.Close();
+            }
+            if (!File.Exists(file)) return;
+            var sw = new StreamWriter(file, true, Encoding.UTF8);
+            sw.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "\r\n" + message.Replace("\n", "\r\n"));
+            sw.Close();
         }
     }
 }

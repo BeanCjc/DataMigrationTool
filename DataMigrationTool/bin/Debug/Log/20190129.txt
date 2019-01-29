@@ -1,0 +1,15 @@
+﻿2019-01-29 16:33:35.723
+2019-01-29 16:36:05.365
+2019-01-29 16:48:09.035
+2019-01-29 16:49:42.549
+2019-01-29 17:13:49.111
+2019-01-29 17:57:06.149
+Get data successfully.Id begins:0.Data recorders are:1.
+Get data successfully.Id begins:0.Data recorders are:0.
+Get data successfully.Id begins:0.Data recorders are:0.
+Get data successfully.Id begins:0.Data recorders are:0.
+Get data successfully.Id begins:0.Data recorders are:0.
+Get data successfully.Id begins:0.Data recorders are:1.
+Get data successfully.Id begins:0.Data recorders are:0.
+2019-01-29 18:03:24.329
+Get data successfully.Id begins:0.Data recorders are:339.

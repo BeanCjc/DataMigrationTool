@@ -66,7 +66,7 @@ namespace DataMigrationTool.Old
         /// <summary>
         /// 领取时间
         /// </summary>
-        public DateTime Get_time { get; set; }
+        public string Get_time { get; set; }
 
         /// <summary>
         /// code序列号
