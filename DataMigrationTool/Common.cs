@@ -17,7 +17,7 @@ namespace DataMigrationTool
         {
             var file = System.Windows.Forms.Application.ExecutablePath;
             var config = ConfigurationManager.OpenExeConfiguration(file);
-            return config.AppSettings.Settings.AllKeys.Any(item => item == key) ? config.AppSettings.Settings[key].Value : null;
+            return config.AppSettings.Settings.AllKeys.Any(item => item == (key ?? "")) ? config.AppSettings.Settings[key].Value : null;
         }
 
         public static void SetConfigValueByKey(string key, string value)
@@ -160,7 +160,7 @@ namespace DataMigrationTool
             }
             if (!File.Exists(file)) return;
             var sw = new StreamWriter(file, true, Encoding.UTF8);
-            sw.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "\r\n" + message.Replace("\n", "\r\n"));
+            sw.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "\r\n" + message.Replace("\n", "\r\n") + "\r\n");
             sw.Close();
         }
     }
