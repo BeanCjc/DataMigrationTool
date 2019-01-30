@@ -8,9 +8,9 @@ namespace DataMigrationTool.RequestEntity
 {
     class RECardOld
     {
-        public string Token { get; set; }
-        public string Card_Id { get; set; }
-        public string Id { get; set; }
-        public List<string> Appoint_Ids { get; set; }
+        public string token { get; set; }
+        public string card_id { get; set; }
+        public string id { get; set; }
+        public List<string> appoint_ids { get; set; }
     }
 }

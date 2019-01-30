@@ -17,20 +17,27 @@ namespace DataMigrationTool
         {
             var file = System.Windows.Forms.Application.ExecutablePath;
             var config = ConfigurationManager.OpenExeConfiguration(file);
-            return config.AppSettings.Settings.AllKeys.Any(item => item == key) ? config.AppSettings.Settings[key].Value : null;
+            return config.AppSettings.Settings.AllKeys.Any(item => item == (key ?? "")) ? config.AppSettings.Settings[key].Value : null;
         }
 
         public static void SetConfigValueByKey(string key, string value)
         {
             var file = System.Windows.Forms.Application.ExecutablePath;
             var config = ConfigurationManager.OpenExeConfiguration(file);
-            if (config.AppSettings.Settings.AllKeys.Any(t => t == key))
+            if (string.IsNullOrEmpty(value))
             {
-                config.AppSettings.Settings[key].Value = value;
+                config.AppSettings.Settings.Remove(key);
             }
             else
             {
-                config.AppSettings.Settings.Add(key, value);
+                if (config.AppSettings.Settings.AllKeys.Any(t => t == key))
+                {
+                    config.AppSettings.Settings[key].Value = value;
+                }
+                else
+                {
+                    config.AppSettings.Settings.Add(key, value);
+                }
             }
             config.Save(ConfigurationSaveMode.Modified);
             System.Configuration.ConfigurationManager.RefreshSection("AppSettings");
@@ -105,7 +112,7 @@ namespace DataMigrationTool
                     //    }
                     //}
 
-                    var data = Encoding.UTF8.GetBytes(param.ToLower());
+                    var data = Encoding.UTF8.GetBytes(param);
                     request.ContentLength = data.Length;
                     request.GetRequestStream().Write(data, 0, data.Length);
                 }
@@ -160,8 +167,17 @@ namespace DataMigrationTool
             }
             if (!File.Exists(file)) return;
             var sw = new StreamWriter(file, true, Encoding.UTF8);
-            sw.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "\r\n" + message.Replace("\n", "\r\n"));
+            sw.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "\r\n" + message.Replace("\n", "\r\n") + "\r\n");
             sw.Close();
+        }
+
+        public static string UpdateIdListStr(string idListStr, List<string> idList)
+        {
+            foreach (var id in idList)
+            {
+                idListStr.Replace(id + ";", "");
+            }
+            return idListStr;
         }
     }
 }

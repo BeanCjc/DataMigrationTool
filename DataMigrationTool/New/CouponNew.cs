@@ -11,91 +11,91 @@ namespace DataMigrationTool.New
         /// <summary>
         /// 旧小微用户卡券ID
         /// </summary>
-        public string Id { get; set; }
+        public string id { get; set; }
 
         /// <summary>
         /// 类型(0=微信卡券，-1=活动卡券)
         /// </summary>
-        public string Type { get; set; }
+        public string type { get; set; }
 
         /// <summary>
         /// 优惠券标题
         /// </summary>
-        public string Title { get; set; }
+        public string title { get; set; }
 
         /// <summary>
         /// 卡券类型
         /// </summary>
-        public string Card_type { get; set; }
+        public string card_type { get; set; }
 
         /// <summary>
         /// 有效期开始时间
         /// </summary>
-        public DateTime Start_date { get; set; }
+        public DateTime start_date { get; set; }
 
         /// <summary>
         /// 有效期结束时间
         /// </summary>
-        public DateTime End_date { get; set; }
+        public DateTime end_date { get; set; }
 
         /// <summary>
         /// 面值(折扣)
         /// </summary>
-        public decimal Face_value { get; set; }
+        public decimal face_value { get; set; }
 
         /// <summary>
         /// 最低消费金额
         /// </summary>
-        public decimal Min_price { get; set; }
+        public decimal min_price { get; set; }
 
         /// <summary>
         /// 关联旧小微门店ID
         /// </summary>
-        public string Location_id_list { get; set; }
+        public string location_id_list { get; set; }
 
         /// <summary>
         /// 状态(4=未使用,5=已使用,6=过期，7=用户删除卡券,8=系统删除)
         /// </summary>
-        public int Status { get; set; }
+        public int status { get; set; }
 
         /// <summary>
         /// 旧小微卡券ID
         /// </summary>
-        public string Card_id { get; set; }
+        public string card_id { get; set; }
 
         /// <summary>
         /// 领取时间
         /// </summary>
-        public DateTime Get_time { get; set; }
+        public string get_time { get; set; }
 
         /// <summary>
         /// code序列号
         /// </summary>
-        public string UserCardCode { get; set; }
+        public string userCardCode { get; set; }
 
         /// <summary>
         /// 领取用户openid
         /// </summary>
-        public string OpenId { get; set; }
+        public string openId { get; set; }
 
         /// <summary>
         /// 领取场景值
         /// </summary>
-        public string OuterId { get; set; }
+        public string outerId { get; set; }
 
         /// <summary>
         /// 卡券快到期提醒(0=未提醒，1=已提醒)
         /// </summary>
-        public int Remind { get; set; }
+        public int remind { get; set; }
 
         /// <summary>
         /// 可使用的商品编码
         /// </summary>
-        public string Product_codes { get; set; }
+        public string product_codes { get; set; }
 
         /// <summary>
         /// 卡券所属旧小微门店
         /// </summary>
-        public string Store_id { get; set; }
+        public string store_id { get; set; }
     }
 }

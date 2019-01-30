@@ -12,27 +12,27 @@ namespace DataMigrationTool.New
         /// <summary>
         /// 旧小微主键（根据主键大小排序，分批获取）
         /// </summary>
-        public string Id { get; set; }
+        public string id { get; set; }
 
         /// <summary>
         /// 会员名称
         /// </summary>
-        public string Name { get; set; }
+        public string name { get; set; }
 
         /// <summary>
         /// 会员卡号
         /// </summary>
-        public string Card_no { get; set; }
+        public string card_no { get; set; }
 
         /// <summary>
         /// 手机号码
         /// </summary>
-        public string Mobile { get; set; }
+        public string mobile { get; set; }
 
         /// <summary>
         /// 余额
         /// </summary>
-        public List<BalanceNew> Balance { get; set; }
+        public List<BalanceNew> balance { get; set; }
 
         ///// <summary>
         ///// 积分余额
@@ -42,40 +42,40 @@ namespace DataMigrationTool.New
         /// <summary>
         /// 性别
         /// </summary>
-        public string Sex { get; set; }
+        public string sex { get; set; }
 
         /// <summary>
         /// 等级名称
         /// </summary>
-        public string Level_name { get; set; }
+        public string level_name { get; set; }
 
         /// <summary>
         /// 粉丝openid
         /// </summary>
-        public string OpenId { get; set; }
+        public string openid { get; set; }
 
         /// <summary>
         /// 生日
         /// </summary>
-        public DateTime Solar_birthday { get; set; }
+        public string solar_birthday { get; set; }
 
         /// <summary>
         /// 密码
         /// </summary>
-        public string Pay_password { get; set; }
+        public string pay_password { get; set; }
 
         /// <summary>
         /// 注册日期
         /// </summary>
-        public string Reg_time { get; set; }
+        public string reg_time { get; set; }
 
-        public string NickName { get; set; }
+        public string nickname { get; set; }
 
-        public string User_Id { get; set; }
+        public string user_id { get; set; }
 
         /// <summary>
         /// 卡券
         /// </summary>
-        public List<CouponNew> Coupon { get; set; }
+        public List<CouponNew> coupon { get; set; }
     }
 }

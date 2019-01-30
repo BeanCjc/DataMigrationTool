@@ -8,6 +8,6 @@ namespace DataMigrationTool.RequestEntity
 {
     class RECardTypeOld
     {
-        public string Token { get; set; }
+        public string token { get; set; }
     }
 }
