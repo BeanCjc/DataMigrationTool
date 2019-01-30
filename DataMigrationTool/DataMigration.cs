@@ -27,7 +27,6 @@ namespace DataMigrationTool
             InitializeComponent();
         }
 
-        private bool _flag, _importFlag;
         private Dictionary<string, Tuple<List<string>, string, string>> _cardTypeRelation = new Dictionary<string, Tuple<List<string>, string, string>>();//旧小微卡类型id集合，最大id，总数
         private List<CardTypeOld> _cardList = new List<CardTypeOld>();
         private string _tokenOld = Common.GetConfigValue("tokenold");
@@ -40,9 +39,6 @@ namespace DataMigrationTool
         private string _urlGetCard = $"{_APIAddressOld}/Api/Member/getMember/addon/MemberCard";
         private string _urlGetCardTypeNew = $"{_APIAddressNew}/Api/Brand/getCardType/addon/Dining";
         private string _urlImportCard = $"{_APIAddressNew}/Api/Brand/batchImportMember/addon/Dining";
-        private string _cardTypeId = "";
-        private string _cardTypeName = "";
-        private string _cardTypeType = "";
 
 
         private void DataMigration_Load(object sender, EventArgs e)
@@ -146,7 +142,6 @@ namespace DataMigrationTool
             #endregion
         }
 
-        private bool autoImport;
         /// <summary>
         /// 根据选择的卡类型进行展示数据
         /// </summary>
@@ -343,12 +338,13 @@ namespace DataMigrationTool
                         foreach (var item in resultImport.Fail)
                         {
                             sb.Append($"id:{item.Id} failReason:{item.Reason}\r\n");
-                            if (IsNullOrEmpty(sbStr.ToString()))
-                            {
-                                sbStr.Append(item.Id);
-                                continue;
-                            }
-                            sbStr.Append(";" + item.Id);
+                            //if (IsNullOrEmpty(sbStr.ToString()))
+                            //{
+                            //    sbStr.Append(item.Id);
+                            //    continue;
+                            //}
+                            //sbStr.Append(";" + item.Id);
+                            sbStr.Append(item.Id + ";");
                         }
                         if (sb.Length > 0)
                         {
@@ -736,13 +732,18 @@ namespace DataMigrationTool
                 #region 获取失败数据id
                 if (IsNullOrEmpty(Common.GetConfigValue(cardTypeId1 + "_failids")))
                 {
+                    keyValuePairs1.Remove(cardTypeId1);
                     return;
                 }
                 var idListString = Common.GetConfigValue(cardTypeId1 + "_failids");
                 var idList = idListString.Split(';').ToList();
                 idList.RemoveAll(IsNullOrEmpty);
                 total = idList.Count;
-                if (_cardTypeRelation.All(t => t.Key != cardTypeId1)) return;
+                if (_cardTypeRelation.All(t => t.Key != cardTypeId1))
+                {
+                    keyValuePairs1.Remove(cardTypeId1);
+                    return;
+                }
                 var cardsOld = new List<CardOld>();
                 var typeIdList = _cardTypeRelation[cardTypeId1].Item1;
                 #endregion
@@ -752,6 +753,16 @@ namespace DataMigrationTool
                 {
                     while (count <= total)
                     {
+                        if (idList.Count <= 0)
+                        {
+                            //循环出口
+                            watcher.Stop();
+                            var timeStamp1 = watcher.ElapsedMilliseconds;
+                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入完成.总用时{timeTotal + timeStamp1}ms.\r\n"));
+                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
+                            keyValuePairs1.Remove(cardTypeId1);
+                            return;
+                        }
                         if (!keyValuePairs1[cardTypeId1])
                         {
                             //导入被取消了，给个提示并返回
@@ -760,7 +771,7 @@ namespace DataMigrationTool
 
                             rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入已被取消。已经导入的数据量为:{count}/{total}.本次用时{timeTotal + timeStamp}ms.\r\n"));
                             rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
-                            Common.SetConfigValueByKey(cardTypeId1+"_failids",idListString);
+                            Common.SetConfigValueByKey(cardTypeId1 + "_failids", idListString);
                             return;
                         }
                         #region 获取数据
@@ -809,20 +820,28 @@ namespace DataMigrationTool
                         var sb = new StringBuilder();
                         var sbStr = new StringBuilder();
                         idListString = Common.UpdateIdListStr(idListString, idList.Count > 1000 ? idList.GetRange(0, 999) : idList);
-                        idList.RemoveRange(0, 1000);
+                        if (idList.Count > 1000)
+                        {
+                            idList.RemoveRange(0, 1000);
+                        }
+                        else
+                        {
+                            idList.RemoveAll(t => true);
+                        }
                         foreach (var item in resultImport.Fail)
                         {
                             sb.Append($"id:{item.Id} failReason:{item.Reason}\r\n");
-                            if (IsNullOrEmpty(sbStr.ToString()))
-                            {
-                                sbStr.Append(item.Id);
-                                continue;
-                            }
-                            sbStr.Append(";" + item.Id);
+                            //if (IsNullOrEmpty(sbStr.ToString()))
+                            //{
+                            //    sbStr.Append(item.Id);
+                            //    continue;
+                            //}
+                            //sbStr.Append(";" + item.Id);
+                            sbStr.Append(item.Id + ";");
                         }
                         if (sb.Length > 0)
                         {
-                            Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ImportFailed.txt", sb.ToString());
+                            Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ImportFailed.txt", "-----------------------------------------FailData-----------------------------------------\r\n" + sb.ToString());
                             if (IsNullOrEmpty(Common.GetConfigValue(cardTypeId1 + "_failids")))
                             {
                                 Common.SetConfigValueByKey(cardTypeId1 + "_failids", sbStr.ToString());
@@ -862,6 +881,7 @@ namespace DataMigrationTool
                     Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ExceptionError.txt", $"导入新小微卡券异常错误.ErrorMessage:{ex.Message}");
                     keyValuePairs1.Remove(cardTypeId1);
                     rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"导入新小微发生了未知错误,详情见日志.\r\n"));
+                    Common.SetConfigValueByKey(cardTypeId1 + "_failids", idListString);
                 }
             });
         }
