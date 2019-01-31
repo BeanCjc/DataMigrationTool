@@ -14,7 +14,7 @@ namespace DataMigrationTool.New
 
         public decimal amount { get; set; }
 
-        public decimal integral { get; set; }
+        //public decimal integral { get; set; }
 
         public string store_id { get; set; }
     }

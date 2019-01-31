@@ -8,7 +8,6 @@ namespace DataMigrationTool
 {
     class ConfigInfo
     {
-        public Dictionary<string,string> CardTypeAndMaxCardId { get; set; }
 
     }
 }

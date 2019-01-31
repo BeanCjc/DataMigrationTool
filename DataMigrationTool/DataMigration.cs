@@ -28,7 +28,7 @@ namespace DataMigrationTool
         }
 
         private Dictionary<string, Tuple<List<string>, string, string>> _cardTypeRelation = new Dictionary<string, Tuple<List<string>, string, string>>();//旧小微卡类型id集合，最大id，总数
-        private List<CardTypeOld> _cardList = new List<CardTypeOld>();
+
         private string _tokenOld = Common.GetConfigValue("tokenold");
         private string _tokenNew = Common.GetConfigValue("tokennew");
         private static string _APIAddressOld = Common.GetConfigValue("apiaddressold");
@@ -370,7 +370,16 @@ namespace DataMigrationTool
                             Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ImportSuccess.txt", sb1.ToString());
                         }
                         //更新最大Id
-                        var maxId = resultImport.Success.Max() > resultImport.Fail.Select(t => t.Id).Max() ? resultImport.Success.Max() : resultImport.Fail.Select(t => t.Id).Max();
+                        int successMaxId = 0, failMaxId = 0;
+                        if (resultImport.Success.Count > 0)
+                        {
+                            successMaxId = resultImport.Success.Max();
+                        }
+                        if (resultImport.Fail.Count > 0)
+                        {
+                            failMaxId = resultImport.Fail.Select(t => t.Id).Max();
+                        }
+                        var maxId = successMaxId > failMaxId ? successMaxId : failMaxId;
                         Common.SetConfigValueByKey(cardTypeId1, maxId.ToString());
                         var newValue = new Tuple<List<string>, string, string>(_cardTypeRelation[cardTypeId1].Item1, maxId.ToString(), _cardTypeRelation[cardTypeId1].Item3);
                         _cardTypeRelation[cardTypeId1] = newValue;
@@ -530,6 +539,214 @@ namespace DataMigrationTool
             Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + ".txt", rtxtInfo.Text);
             rtxtInfo.Clear();
         }
+        
+        //获取当前卡类型导入失败的数据,没有则不做任何动作
+        private void failDataMenuItem_Click(object sender, EventArgs e)
+        {
+            var cardTypeId = comboBox1.SelectedValue.ToString();
+            if (IsNullOrEmpty(Common.GetConfigValue(cardTypeId + "_failids")))
+            {
+                return;
+            }
+            var idListString = Common.GetConfigValue(cardTypeId + "_failids");
+            var idList = idListString.Split(';').ToList();
+            idList.RemoveAll(IsNullOrEmpty);
+            if (_cardTypeRelation.All(t => t.Key != cardTypeId)) return;
+            var cardsOld = new List<CardOld>();
+            var typeIdList = _cardTypeRelation[cardTypeId].Item1;
+            foreach (var typeId in typeIdList)
+            {
+                var cards = GetCardsOld(_tokenOld, typeId, "", idList);
+                if (cards == null) return;//获取数据失败直接返回
+                if (cards.Count <= 0)
+                {
+                    continue;
+                }
+                cardsOld.AddRange(cards);
+            }
+            var converter = new IsoDateTimeConverter
+            {
+                DateTimeFormat = "yyyy-MM-dd"
+            };
+            rtxt_data.Invoke(new Action(() => rtxt_data.Text = $"{Common.ConvertJsonString(JsonConvert.SerializeObject(cardsOld, converter))}\r\n"));
+            txtMaxId.Invoke(new Action(() => txtMaxId.Text = ""));
+            txtCount.Invoke(new Action(() => txtCount.Text = cardsOld.Count.ToString()));
+        }
+
+        private Dictionary<string, bool> keyValuePairs1 = new Dictionary<string, bool>();
+        private void importFailDataMenuItem_Click(object sender, EventArgs e)
+        {
+            var cardTypeId = comboBox1.SelectedValue.ToString();
+            if (keyValuePairs1.Any(t => t.Key == cardTypeId && t.Value))
+            {
+                if (MessageBox.Show("当前卡类型正在导入失败数据中，请勿重复操作") == DialogResult.OK)
+                {
+                    return;
+                }
+            }
+            else if (keyValuePairs1.Any(t => t.Key == cardTypeId && t.Value == false))
+            {
+                keyValuePairs1[cardTypeId] = true;
+            }
+            else
+            {
+                keyValuePairs1.Add(cardTypeId, true);
+            }
+
+            Task.Run(() =>
+            {
+                ///另起线程各自卡类型跑各自的
+                ///1.获取数据
+                ///2.导入数据
+                ///
+                var cardTypeId1 = cardTypeId;
+                int count = 0, countSuccess = 0, total = 0;
+                var watcher = new Stopwatch();
+                watcher.Start();//计时器
+                var timeTotal = 0L;
+                #region 获取失败数据id
+                if (IsNullOrEmpty(Common.GetConfigValue(cardTypeId1 + "_failids")))
+                {
+                    keyValuePairs1.Remove(cardTypeId1);
+                    return;
+                }
+                var idListString = Common.GetConfigValue(cardTypeId1 + "_failids");
+                var idList = idListString.Split(';').ToList();
+                idList.RemoveAll(IsNullOrEmpty);
+                total = idList.Count;
+                if (_cardTypeRelation.All(t => t.Key != cardTypeId1))
+                {
+                    keyValuePairs1.Remove(cardTypeId1);
+                    return;
+                }
+                var cardsOld = new List<CardOld>();
+                var typeIdList = _cardTypeRelation[cardTypeId1].Item1;
+                #endregion
+                //直接删除原先失败的id
+                Common.SetConfigValueByKey(cardTypeId1 + "_failids", "");
+                try
+                {
+                    while (count <= total)
+                    {
+                        if (idList.Count <= 0)
+                        {
+                            //循环出口
+                            watcher.Stop();
+                            var timeStamp1 = watcher.ElapsedMilliseconds;
+                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入完成.总用时{timeTotal + timeStamp1}ms.\r\n"));
+                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
+                            keyValuePairs1.Remove(cardTypeId1);
+                            return;
+                        }
+                        if (!keyValuePairs1[cardTypeId1])
+                        {
+                            //导入被取消了，给个提示并返回
+                            watcher.Stop();
+                            var timeStamp = watcher.ElapsedMilliseconds;
+
+                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入已被取消。已经导入的数据量为:{count}/{total}.本次用时{timeTotal + timeStamp}ms.\r\n"));
+                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
+                            Common.SetConfigValueByKey(cardTypeId1 + "_failids", idListString);
+                            return;
+                        }
+                        #region 获取数据
+                        foreach (var typeId in typeIdList)
+                        {
+                            var cards = GetCardsOld(_tokenOld, typeId, "", idList);
+                            if (cards == null) return;//获取数据失败直接返回
+                            if (cards.Count <= 0)
+                            {
+                                continue;
+                            }
+                            cardsOld.AddRange(cards);
+                        }
+                        #endregion
+
+                        if (cardsOld.Count <= 0)
+                        {
+                            if (count > 0)
+                            {
+                                //循环出口
+                                watcher.Stop();
+                                var timeStamp1 = watcher.ElapsedMilliseconds;
+                                rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入完成.总用时{timeTotal + timeStamp1}ms.\r\n"));
+                                rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
+                                keyValuePairs1.Remove(cardTypeId1);
+                                return;
+                            }
+                            //没数据，给个提示
+                            watcher.Stop();
+                            var timeStamp2 = watcher.ElapsedMilliseconds;
+                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]没有数据可导入.本次用时{timeStamp2}ms.\r\n"));
+                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
+                            keyValuePairs1.Remove(cardTypeId1);
+                            return;
+                        }
+                        var cardsImport = AutoMapper.Mapper.Map<List<CardOld>, List<CardNew>>(cardsOld);
+                        var resultImport = Import(_tokenNew, cardTypeId1, cardsImport);
+                        if (resultImport == null)
+                        {
+                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入失败，详情见日志\r\n"));
+                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
+                            keyValuePairs1.Remove(cardTypeId1);
+                            Common.SetConfigValueByKey(cardTypeId1 + "_failids", idListString);
+                            return;//插入失败直接退出
+                        }
+                        var sb = new StringBuilder();
+                        var sbStr = new StringBuilder();
+                        idListString = Common.UpdateIdListStr(idListString, idList.FindAll(t => cardsOld.Select(x => x.Id).Contains(t)));
+                        idList.RemoveAll(t => cardsOld.Select(x => x.Id).Contains(t));
+                        foreach (var item in resultImport.Fail)
+                        {
+                            sb.Append($"id:{item.Id} failReason:{item.Reason}\r\n");
+                            sbStr.Append(item.Id + ";");
+                        }
+                        if (sb.Length > 0)
+                        {
+                            Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ImportFailed.txt", "-----------------------------------------FailData-----------------------------------------\r\n" + sb.ToString());
+                            if (IsNullOrEmpty(Common.GetConfigValue(cardTypeId1 + "_failids")))
+                            {
+                                Common.SetConfigValueByKey(cardTypeId1 + "_failids", sbStr.ToString());
+                            }
+                            else
+                            {
+                                var ddd = Common.GetConfigValue(cardTypeId1 + "_failids");
+                                Common.SetConfigValueByKey(cardTypeId1 + "_failids", ddd + sbStr);
+                            }
+                        }
+
+                        var sb1 = new StringBuilder();
+                        foreach (var item in resultImport.Success)
+                        {
+                            sb1.Append($"id:{item}\r\n");
+                        }
+                        if (sb1.Length > 0)
+                        {
+                            Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ImportSuccess.txt", sb1.ToString());
+                        }
+                        count += resultImport.Fail.Count + resultImport.Success.Count;
+                        countSuccess += resultImport.Success.Count;
+                        var timeStamp3 = watcher.ElapsedMilliseconds;
+                        rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}已导入数据量为:{countSuccess}/{total}.本次用时{ timeStamp3}ms.\r\n"));//给界面提示，不做进度条
+                        timeTotal += timeStamp3;
+                        watcher.Restart();
+                    }
+                    //导入完成，删除键值对里对应的数据
+                    watcher.Stop();
+                    var timeStamp4 = watcher.ElapsedMilliseconds;
+                    rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入完成.总用时{timeStamp4 + timeTotal}ms.\r\n"));
+                    rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
+                    keyValuePairs1.Remove(cardTypeId1);
+                }
+                catch (Exception ex)
+                {
+                    Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ExceptionError.txt", $"导入新小微卡券异常错误.ErrorMessage:{ex.Message}");
+                    keyValuePairs1.Remove(cardTypeId1);
+                    rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"导入新小微发生了未知错误,详情见日志.\r\n"));
+                    Common.SetConfigValueByKey(cardTypeId1 + "_failids", idListString);
+                }
+            });
+        }
 
         /// <summary>
         /// 获取旧小微卡类型
@@ -663,229 +880,6 @@ namespace DataMigrationTool
                 return null;
             }
         }
-
-        //获取当前卡类型导入失败的数据,没有则不做任何动作
-        private void failDataMenuItem_Click(object sender, EventArgs e)
-        {
-            var cardTypeId = comboBox1.SelectedValue.ToString();
-            if (IsNullOrEmpty(Common.GetConfigValue(cardTypeId + "_failids")))
-            {
-                return;
-            }
-            var idListString = Common.GetConfigValue(cardTypeId + "_failids");
-            var idList = idListString.Split(';').ToList();
-            idList.RemoveAll(IsNullOrEmpty);
-            if (_cardTypeRelation.All(t => t.Key != cardTypeId)) return;
-            var cardsOld = new List<CardOld>();
-            var typeIdList = _cardTypeRelation[cardTypeId].Item1;
-            foreach (var typeId in typeIdList)
-            {
-                var cards = GetCardsOld(_tokenOld, typeId, "", idList);
-                if (cards == null) return;//获取数据失败直接返回
-                if (cards.Count <= 0)
-                {
-                    continue;
-                }
-                cardsOld.AddRange(cards);
-            }
-            var converter = new IsoDateTimeConverter
-            {
-                DateTimeFormat = "yyyy-MM-dd"
-            };
-            rtxt_data.Invoke(new Action(() => rtxt_data.Text = $"{Common.ConvertJsonString(JsonConvert.SerializeObject(cardsOld, converter))}\r\n"));
-            txtMaxId.Invoke(new Action(() => txtMaxId.Text = ""));
-            txtCount.Invoke(new Action(() => txtCount.Text = cardsOld.Count.ToString()));
-        }
-
-        private Dictionary<string, bool> keyValuePairs1 = new Dictionary<string, bool>();
-
-        private void importFailDataMenuItem_Click(object sender, EventArgs e)
-        {
-            var cardTypeId = comboBox1.SelectedValue.ToString();
-            if (keyValuePairs1.Any(t => t.Key == cardTypeId && t.Value))
-            {
-                if (MessageBox.Show("当前卡类型正在导入失败数据中，请勿重复操作") == DialogResult.OK)
-                {
-                    return;
-                }
-            }
-            else if (keyValuePairs1.Any(t => t.Key == cardTypeId && t.Value == false))
-            {
-                keyValuePairs1[cardTypeId] = true;
-            }
-            else
-            {
-                keyValuePairs1.Add(cardTypeId, true);
-            }
-
-            Task.Run(() =>
-            {
-                ///另起线程各自卡类型跑各自的
-                ///1.获取数据
-                ///2.导入数据
-                ///
-                var cardTypeId1 = cardTypeId;
-                int count = 0, countSuccess = 0, total = 0;
-                var watcher = new Stopwatch();
-                watcher.Start();//计时器
-                var timeTotal = 0L;
-                #region 获取失败数据id
-                if (IsNullOrEmpty(Common.GetConfigValue(cardTypeId1 + "_failids")))
-                {
-                    keyValuePairs1.Remove(cardTypeId1);
-                    return;
-                }
-                var idListString = Common.GetConfigValue(cardTypeId1 + "_failids");
-                var idList = idListString.Split(';').ToList();
-                idList.RemoveAll(IsNullOrEmpty);
-                total = idList.Count;
-                if (_cardTypeRelation.All(t => t.Key != cardTypeId1))
-                {
-                    keyValuePairs1.Remove(cardTypeId1);
-                    return;
-                }
-                var cardsOld = new List<CardOld>();
-                var typeIdList = _cardTypeRelation[cardTypeId1].Item1;
-                #endregion
-                //直接删除原先失败的id
-                Common.SetConfigValueByKey(cardTypeId1 + "_failids", "");
-                try
-                {
-                    while (count <= total)
-                    {
-                        if (idList.Count <= 0)
-                        {
-                            //循环出口
-                            watcher.Stop();
-                            var timeStamp1 = watcher.ElapsedMilliseconds;
-                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入完成.总用时{timeTotal + timeStamp1}ms.\r\n"));
-                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
-                            keyValuePairs1.Remove(cardTypeId1);
-                            return;
-                        }
-                        if (!keyValuePairs1[cardTypeId1])
-                        {
-                            //导入被取消了，给个提示并返回
-                            watcher.Stop();
-                            var timeStamp = watcher.ElapsedMilliseconds;
-
-                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入已被取消。已经导入的数据量为:{count}/{total}.本次用时{timeTotal + timeStamp}ms.\r\n"));
-                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
-                            Common.SetConfigValueByKey(cardTypeId1 + "_failids", idListString);
-                            return;
-                        }
-                        #region 获取数据
-                        foreach (var typeId in typeIdList)
-                        {
-                            var cards = GetCardsOld(_tokenOld, typeId, "", idList.Count > 1000 ? idList.GetRange(0, 999) : idList);
-                            if (cards == null) return;//获取数据失败直接返回
-                            if (cards.Count <= 0)
-                            {
-                                continue;
-                            }
-                            cardsOld.AddRange(cards);
-                        }
-                        #endregion
-
-                        if (cardsOld.Count <= 0)
-                        {
-                            if (count > 0)
-                            {
-                                //循环出口
-                                watcher.Stop();
-                                var timeStamp1 = watcher.ElapsedMilliseconds;
-                                rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入完成.总用时{timeTotal + timeStamp1}ms.\r\n"));
-                                rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
-                                keyValuePairs1.Remove(cardTypeId1);
-                                return;
-                            }
-                            //没数据，给个提示
-                            watcher.Stop();
-                            var timeStamp2 = watcher.ElapsedMilliseconds;
-                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]没有数据可导入.本次用时{timeStamp2}ms.\r\n"));
-                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
-                            keyValuePairs1.Remove(cardTypeId1);
-                            return;
-                        }
-                        var cardsImport = AutoMapper.Mapper.Map<List<CardOld>, List<CardNew>>(cardsOld);
-                        var resultImport = Import(_tokenNew, cardTypeId1, cardsImport);
-                        if (resultImport == null)
-                        {
-                            rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入失败，详情见日志\r\n"));
-                            rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
-                            keyValuePairs1.Remove(cardTypeId1);
-                            Common.SetConfigValueByKey(cardTypeId1 + "_failids", idListString);
-                            return;//插入失败直接退出
-                        }
-                        var sb = new StringBuilder();
-                        var sbStr = new StringBuilder();
-                        idListString = Common.UpdateIdListStr(idListString, idList.Count > 1000 ? idList.GetRange(0, 999) : idList);
-                        if (idList.Count > 1000)
-                        {
-                            idList.RemoveRange(0, 1000);
-                        }
-                        else
-                        {
-                            idList.RemoveAll(t => true);
-                        }
-                        foreach (var item in resultImport.Fail)
-                        {
-                            sb.Append($"id:{item.Id} failReason:{item.Reason}\r\n");
-                            //if (IsNullOrEmpty(sbStr.ToString()))
-                            //{
-                            //    sbStr.Append(item.Id);
-                            //    continue;
-                            //}
-                            //sbStr.Append(";" + item.Id);
-                            sbStr.Append(item.Id + ";");
-                        }
-                        if (sb.Length > 0)
-                        {
-                            Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ImportFailed.txt", "-----------------------------------------FailData-----------------------------------------\r\n" + sb.ToString());
-                            if (IsNullOrEmpty(Common.GetConfigValue(cardTypeId1 + "_failids")))
-                            {
-                                Common.SetConfigValueByKey(cardTypeId1 + "_failids", sbStr.ToString());
-                            }
-                            else
-                            {
-                                var ddd = Common.GetConfigValue(cardTypeId1 + "_failids");
-                                Common.SetConfigValueByKey(cardTypeId1 + "_failids", ddd + sbStr);
-                            }
-                        }
-
-                        var sb1 = new StringBuilder();
-                        foreach (var item in resultImport.Success)
-                        {
-                            sb1.Append($"id:{item}\r\n");
-                        }
-                        if (sb1.Length > 0)
-                        {
-                            Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ImportSuccess.txt", sb1.ToString());
-                        }
-                        count += resultImport.Fail.Count + resultImport.Success.Count;
-                        countSuccess += resultImport.Success.Count;
-                        var timeStamp3 = watcher.ElapsedMilliseconds;
-                        rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}已导入数据量为:{countSuccess}/{total}.本次用时{ timeStamp3}ms.\r\n"));//给界面提示，不做进度条
-                        timeTotal += timeStamp3;
-                        watcher.Restart();
-                    }
-                    //导入完成，删除键值对里对应的数据
-                    watcher.Stop();
-                    var timeStamp4 = watcher.ElapsedMilliseconds;
-                    rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"新小微卡类型[ID:{cardTypeId1}]导入完成.总用时{timeStamp4 + timeTotal}ms.\r\n"));
-                    rtxt_data.Invoke(new Action(() => rtxt_data.Clear()));
-                    keyValuePairs1.Remove(cardTypeId1);
-                }
-                catch (Exception ex)
-                {
-                    Common.WriteLog(DateTime.Now.ToString("yyyyMMdd") + "ExceptionError.txt", $"导入新小微卡券异常错误.ErrorMessage:{ex.Message}");
-                    keyValuePairs1.Remove(cardTypeId1);
-                    rtxtInfo.Invoke(new Action(() => rtxtInfo.Text += $"导入新小微发生了未知错误,详情见日志.\r\n"));
-                    Common.SetConfigValueByKey(cardTypeId1 + "_failids", idListString);
-                }
-            });
-        }
-
         /// <summary>
         /// 导入新小微卡券信息
         /// </summary>

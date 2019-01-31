@@ -32,7 +32,8 @@
             this.rtxt_data = new System.Windows.Forms.RichTextBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.cancelmenuitem = new System.Windows.Forms.ToolStripMenuItem();
-            this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.failDataMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importFailDataMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.lblCardType = new System.Windows.Forms.Label();
             this.lblMaxId = new System.Windows.Forms.Label();
@@ -42,8 +43,6 @@
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.txtCount = new System.Windows.Forms.TextBox();
             this.lblCount = new System.Windows.Forms.Label();
-            this.failDataMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importFailDataMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -61,25 +60,31 @@
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.cancelmenuitem,
-            this.testToolStripMenuItem,
             this.failDataMenuItem,
             this.importFailDataMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 114);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 92);
             // 
             // cancelmenuitem
             // 
             this.cancelmenuitem.Name = "cancelmenuitem";
             this.cancelmenuitem.Size = new System.Drawing.Size(180, 22);
-            this.cancelmenuitem.Text = "取消";
+            this.cancelmenuitem.Text = "取消导入";
             this.cancelmenuitem.Click += new System.EventHandler(this.cancelmenuitem_Click);
             // 
-            // testToolStripMenuItem
+            // failDataMenuItem
             // 
-            this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.testToolStripMenuItem.Text = "test";
-            this.testToolStripMenuItem.Click += new System.EventHandler(this.testToolStripMenuItem_Click);
+            this.failDataMenuItem.Name = "failDataMenuItem";
+            this.failDataMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.failDataMenuItem.Text = "失败数据";
+            this.failDataMenuItem.Click += new System.EventHandler(this.failDataMenuItem_Click);
+            // 
+            // importFailDataMenuItem
+            // 
+            this.importFailDataMenuItem.Name = "importFailDataMenuItem";
+            this.importFailDataMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.importFailDataMenuItem.Text = "导入失败数据";
+            this.importFailDataMenuItem.Click += new System.EventHandler(this.importFailDataMenuItem_Click);
             // 
             // comboBox1
             // 
@@ -164,20 +169,6 @@
             this.lblCount.Text = "会员总数:";
             this.lblCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // failDataMenuItem
-            // 
-            this.failDataMenuItem.Name = "failDataMenuItem";
-            this.failDataMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.failDataMenuItem.Text = "失败数据";
-            this.failDataMenuItem.Click += new System.EventHandler(this.failDataMenuItem_Click);
-            // 
-            // importFailDataMenuItem
-            // 
-            this.importFailDataMenuItem.Name = "importFailDataMenuItem";
-            this.importFailDataMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.importFailDataMenuItem.Text = "导入失败数据";
-            this.importFailDataMenuItem.Click += new System.EventHandler(this.importFailDataMenuItem_Click);
-            // 
             // DataMigration
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -218,7 +209,6 @@
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem cancelmenuitem;
-        private System.Windows.Forms.ToolStripMenuItem testToolStripMenuItem;
         private System.Windows.Forms.TextBox txtCount;
         private System.Windows.Forms.Label lblCount;
         private System.Windows.Forms.ToolStripMenuItem failDataMenuItem;

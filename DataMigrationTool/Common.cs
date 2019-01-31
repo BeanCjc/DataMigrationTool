@@ -43,40 +43,42 @@ namespace DataMigrationTool
             System.Configuration.ConfigurationManager.RefreshSection("AppSettings");
         }
 
-        public static ResponseResult Get(string url)
-        {
-            ResponseResult result;
-            if (string.IsNullOrEmpty(url))
-            {
-                return result = new ResponseResult { Status = 0, Info = "url为空", List = null };
-            }
-            if (!url.StartsWith("http://", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return result = new ResponseResult { Status = 0, Info = "url格式不正确", List = null };
-            }
-            var request = WebRequest.CreateHttp(url);
-            request.Method = "GET";
-            request.Timeout = 5000;
-            request.Accept = "application/json";
-            try
-            {
-                var response = request.GetResponse();
-                using (var sr = new StreamReader(response.GetResponseStream() ?? throw new InvalidOperationException($"return null"), Encoding.UTF8))
-                {
-                    result = JsonConvert.DeserializeObject<ResponseResult>(sr.ReadToEnd());
-                    if (result == null)
-                    {
-                        return result = new ResponseResult { Status = 0, Info = "反序列化错误", List = null };
-                    }
-                }
-                response.Close();
-                return result;
-            }
-            catch (Exception e)
-            {
-                return result = new ResponseResult { Status = 0, Info = e.Message, List = null };
-            }
-        }
+        #region GET请求,没用,已注释
+        //public static ResponseResult Get(string url)
+        //{
+        //    ResponseResult result;
+        //    if (string.IsNullOrEmpty(url))
+        //    {
+        //        return result = new ResponseResult { Status = 0, Info = "url为空", List = null };
+        //    }
+        //    if (!url.StartsWith("http://", StringComparison.CurrentCultureIgnoreCase))
+        //    {
+        //        return result = new ResponseResult { Status = 0, Info = "url格式不正确", List = null };
+        //    }
+        //    var request = WebRequest.CreateHttp(url);
+        //    request.Method = "GET";
+        //    request.Timeout = 5000;
+        //    request.Accept = "application/json";
+        //    try
+        //    {
+        //        var response = request.GetResponse();
+        //        using (var sr = new StreamReader(response.GetResponseStream() ?? throw new InvalidOperationException($"return null"), Encoding.UTF8))
+        //        {
+        //            result = JsonConvert.DeserializeObject<ResponseResult>(sr.ReadToEnd());
+        //            if (result == null)
+        //            {
+        //                return result = new ResponseResult { Status = 0, Info = "反序列化错误", List = null };
+        //            }
+        //        }
+        //        response.Close();
+        //        return result;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return result = new ResponseResult { Status = 0, Info = e.Message, List = null };
+        //    }
+        //}
+        #endregion
         public static string Post(string url, string param)
         {
             var result = "";
@@ -97,21 +99,6 @@ namespace DataMigrationTool
             {
                 if (!string.IsNullOrEmpty(param))
                 {
-                    //var firstFlag = true;
-                    //var sb = new StringBuilder();
-                    //foreach (var item in param)
-                    //{
-                    //    if (firstFlag)
-                    //    {
-                    //        sb.Append($"{item.Key}={item.Value}");
-                    //        firstFlag = false;
-                    //    }
-                    //    else
-                    //    {
-                    //        sb.Append($"&{item.Key}={item.Value}");
-                    //    }
-                    //}
-
                     var data = Encoding.UTF8.GetBytes(param);
                     request.ContentLength = data.Length;
                     request.GetRequestStream().Write(data, 0, data.Length);

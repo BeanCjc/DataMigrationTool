@@ -29,6 +29,11 @@ namespace DataMigrationTool.Old
         public string Mobile { get; set; }
 
         /// <summary>
+        /// 积分
+        /// </summary>
+        public decimal? Integral { get; set; }
+
+        /// <summary>
         /// 余额
         /// </summary>
         public List<BalanceOld> Balance { get; set; }

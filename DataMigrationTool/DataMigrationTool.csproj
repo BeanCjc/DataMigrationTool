@@ -56,7 +56,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CardTypeList.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="ConfigInfo.cs" />
     <Compile Include="DataMigration.cs">

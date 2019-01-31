@@ -71,17 +71,17 @@ namespace DataMigrationTool.New
         /// <summary>
         /// code序列号
         /// </summary>
-        public string userCardCode { get; set; }
+        public string usercardcode { get; set; }
 
         /// <summary>
         /// 领取用户openid
         /// </summary>
-        public string openId { get; set; }
+        public string openid { get; set; }
 
         /// <summary>
         /// 领取场景值
         /// </summary>
-        public string outerId { get; set; }
+        public string outerid { get; set; }
 
         /// <summary>
         /// 卡券快到期提醒(0=未提醒，1=已提醒)
